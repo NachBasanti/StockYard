@@ -15,6 +15,9 @@ export interface Vehicle {
   sentPhotos?: string[];         // For photos sent after processing
   receivedDate?: string;         // Date the vehicle was received
   daysInStockyard?: number;      // Counter for days in stockyard
+  branch?: string;
+  deliveredDate?: string; // ✅ Add this
+  deliveryRemarks?:string;
 }
 
 export const VehicleTypes = ['Tata', 'Bajaj 3-wheeler', 'Ashok Leyland'];

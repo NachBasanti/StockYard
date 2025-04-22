@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useStockyard } from '../context/StockyardContext';
 import { Vehicle, VehicleTypes, EntryTypes, FuelTypes, PhysicalStatuses } from '../types/types';
-import { ExcelUpload } from './Excelupload';
+import { ExcelUpload } from './ExcelUpload';
 import { PhotoUpload } from './PhotoUpload';
 
 export const StockyardStatus = () => {

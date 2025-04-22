@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Vehicle, PhysicalStatuses } from '../types/types';
+import { Vehicle } from '../types/types';
 
 interface StockyardContextType {
   vehicles: Vehicle[];
@@ -53,16 +53,11 @@ const mockVehicles: Vehicle[] = [
 export const StockyardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles);
 
-  // Update days counter every day at midnight
   useEffect(() => {
     const updateDaysCounter = () => {
-      setVehicles(prevVehicles => 
+      setVehicles(prevVehicles =>
         prevVehicles.map(vehicle => {
-          // Don't update days for delivered vehicles
-          if (vehicle.physicalStatus === 'Delivered') {
-            return vehicle;
-          }
-          
+          if (vehicle.physicalStatus === 'Delivered') return vehicle;
           return {
             ...vehicle,
             daysInStockyard: (vehicle.daysInStockyard || 0) + 1
@@ -71,20 +66,12 @@ export const StockyardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       );
     };
 
-    // Check current time and set timer to run at midnight
     const now = new Date();
-    const night = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1, // next day
-      0, 0, 0 // midnight
-    );
+    const night = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
     const timeToMidnight = night.getTime() - now.getTime();
 
-    // Set up interval to run daily
     const timer = setTimeout(() => {
       updateDaysCounter();
-      // Then set it to run every 24 hours
       const interval = setInterval(updateDaysCounter, 24 * 60 * 60 * 1000);
       return () => clearInterval(interval);
     }, timeToMidnight);
@@ -96,35 +83,29 @@ export const StockyardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const newVehicle: Vehicle = {
       ...vehicle,
       id: crypto.randomUUID(),
-      physicalStatus: vehicle.physicalStatus || 'In Branch', // Default to In Branch
+      physicalStatus: vehicle.physicalStatus || 'In Branch',
       daysInStockyard: vehicle.daysInStockyard || 0,
       receivedDate: vehicle.receivedDate || new Date().toISOString().split('T')[0]
     };
-    
-    // If this is a chassis from Excel, remove the unassigned version
+
     if (vehicle.entryType === 'New') {
       setVehicles(prevVehicles => {
-        // Filter out the unassigned version of this chassis
-        const filtered = prevVehicles.filter(v => 
+        const filtered = prevVehicles.filter(v =>
           !(v.chassisNumber === vehicle.chassisNumber && v.entryType === 'Unassigned')
         );
-        // Add the new vehicle
         return [...filtered, newVehicle];
       });
     } else {
-      // Just add the vehicle
       setVehicles(prev => [...prev, newVehicle]);
     }
   };
 
   const addVehiclesFromExcel = (newVehicles: Vehicle[]) => {
-    // Check for duplicate chassis numbers
-    const existingChassisNumbers = new Set(vehicles
-      .filter(v => v.entryType !== 'Unassigned') // Ignore unassigned vehicles for duplication check
-      .map(v => v.chassisNumber));
-    
-    // Filter out duplicates and set default values
-    const validVehicles = newVehicles
+    const existingChassisNumbers = new Set(
+      vehicles.filter(v => v.entryType !== 'Unassigned').map(v => v.chassisNumber)
+    );
+
+    const validVehicles: Vehicle[] = newVehicles
       .filter(v => {
         if (existingChassisNumbers.has(v.chassisNumber)) {
           console.warn(`Duplicate chassis number skipped: ${v.chassisNumber}`);
@@ -135,11 +116,11 @@ export const StockyardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       .map(v => ({
         ...v,
         id: v.id || crypto.randomUUID(),
-        entryType: 'Unassigned', // Excel imports start as Unassigned for autocomplete
+        entryType: 'Unassigned',
         physicalStatus: 'In Transit',
         receivedDate: new Date().toISOString().split('T')[0],
         daysInStockyard: 0
-      }));
+      } as Vehicle));
 
     if (validVehicles.length > 0) {
       setVehicles(prev => [...prev, ...validVehicles]);
@@ -147,21 +128,21 @@ export const StockyardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const updateVehicleDetails = (id: string, updates: Partial<Vehicle>) => {
-    setVehicles(vehicles.map(vehicle => {
-      if (vehicle.id === id) {
-        // If changing to "Delivered", set delivered date and freeze day counter
-        if (updates.physicalStatus === 'Delivered' && vehicle.physicalStatus !== 'Delivered') {
-          return { 
-            ...vehicle, 
-            ...updates,
-            deliveredDate: updates.deliveredDate || new Date().toISOString().split('T')[0]
-          };
+    setVehicles(prev =>
+      prev.map(vehicle => {
+        if (vehicle.id === id) {
+          if (updates.physicalStatus === 'Delivered' && vehicle.physicalStatus !== 'Delivered') {
+            return {
+              ...vehicle,
+              ...updates,
+              deliveredDate: updates.deliveredDate || new Date().toISOString().split('T')[0]
+            };
+          }
+          return { ...vehicle, ...updates };
         }
-        
-        return { ...vehicle, ...updates };
-      }
-      return vehicle;
-    }));
+        return vehicle;
+      })
+    );
   };
 
   const getVehicleById = (id: string) => {
@@ -169,14 +150,8 @@ export const StockyardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   return (
-    <StockyardContext.Provider 
-      value={{ 
-        vehicles, 
-        addVehicle, 
-        addVehiclesFromExcel, 
-        updateVehicleDetails, 
-        getVehicleById 
-      }}
+    <StockyardContext.Provider
+      value={{ vehicles, addVehicle, addVehiclesFromExcel, updateVehicleDetails, getVehicleById }}
     >
       {children}
     </StockyardContext.Provider>

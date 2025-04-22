@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStockyard } from '../context/StockyardContext';
 import { PhotoUpload } from './PhotoUpload';
-import { Vehicle, VehicleTypes, FuelTypes } from '../types/types';
+import { Vehicle, VehicleTypes,  } from '../types/types';
 
 // Define branches
 const branches = ['Bangalore', 'Mumbai', 'Delhi', 'Chennai', 'Kolkata'];
