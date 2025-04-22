@@ -6,13 +6,6 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(),    tailwindcss(),
   ],
-  build: {
-    rollupOptions: {
-      external: ['xlsx'] // ✅ Tell Rollup to ignore bundling xlsx
-    }
-  },
-  optimizeDeps: {
-    exclude: ['xlsx'] // ✅ Skip trying to pre-bundle xlsx
-  }
+  
   
 })
